@@ -6,68 +6,61 @@ import Coin from '../prefabs/Coin';
 import Player from '../prefabs/Player';
 import Heart from '../prefabs/Heart';
 import Wall from '../prefabs/Wall';
+import CoinParticle from '../prefabs/particles/Coin.particle';
 
 export default class extends Phaser.State {
     init() {
-        console.log("Game");
         this.itemCount = 0;
     }
     preload() {
-              this.itemGroup = this.game.add.physicsGroup();
+        this.itemGroup = this.game.add.physicsGroup();
+        game.input.onDown.add(this.particleBurst, this);
     }
+    particleBurst(pointer) {
 
+    }
     create() {
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
-        console.log();
-        this.setPlayer();
+
+
         //give the items gravity
         this.game.physics.arcade.gravity.y = 200;
-        //set up explosions for the bomb
-        this.emitter = this.game.add.emitter(0, 0, 100);
 
-        this.emitter.makeParticles('');
         //keep track of the things that are in the air.
-        this.airbornSprites = [];
-        this.setWall();
+        this.setPlayer();
+        // this.setWall();
         this.setRound();
-        // this.healthDisplay = this.add.text(this.world.x + 200, 80, playerHealth);
-        // this.healthDisplay.font = 'Bangers';
-        // this.healthDisplay.padding.set(10, 16);
-        // this.healthDisplay.fontSize = 40;
-        // this.healthDisplay.fill = '#77BFA3';
-        // this.healthDisplay.smoothed = false;
-        // this.healthDisplay.anchor.setTo(0.5);
-        //create two groups
 
 
 
     }
-    update(){
-      game.physics.arcade.collide(this.wall,this.itemGroup,()=>{
-        console.log("hitting");
-      });
+    update() {
+        game.physics.arcade.collide(this.wall, this.itemGroup, () => {
+            console.log("hitting");
+        });
+        console.log(this.itemGroup);
     }
-    setWall(){
-      //create a boundary below the canvas for the items to be destroyed against
-      this.wall = new Wall({
-          game: this,
-          x: this.world.centerX,
-          y: this.world.y + this.world.height -100,
-          asset:'wall'
-      });
-      this.game.add.existing(this.wall)
-      var width = document.documentElement.clientWidth; // example;
-      var height = 10 // example;
+    setWall() {
+        //create a boundary below the canvas for the items to be destroyed against
+        this.wall = new Wall({
+            game: this,
+            x: this.world.centerX,
+            y: this.world.y + this.world.height - 100,
+            asset: 'wall'
+        });
+        this.game.add.existing(this.wall)
+        var width = document.documentElement.clientWidth; // example;
+        var height = 10 // example;
 
-      this.game.physics.arcade.enable(this.wall);
+        this.game.physics.arcade.enable(this.wall);
 
 
-      // this.game.physics.arcade.enable([]);
+        // this.game.physics.arcade.enable([]);
 
-      this.wall.body.enable = true;
-      this.wall.body.immovable = true;
-      this.wall.body.allowGravity = false;
-      this.wall.body.setSize(height,width)
+        this.wall.body.enable = true;
+        this.wall.body.immovable = true;
+        this.wall.body.allowGravity = false;
+        this.wall.body.setSize(height, width)
     }
     setSprite(type) {
         let item;
@@ -102,15 +95,12 @@ export default class extends Phaser.State {
         item.events.onInputDown.add(() => {
             this.handleClick(item, this);
         });
-
-        this.airbornSprites.push(item);
         this.launchSprite([item])
     }
     removeSprite() {
 
     }
     setRound() {
-
         let randomNumberOfSprites = this.game.rnd.integerInRange(2, 10);
         let arrayOfTypes = ['coin', 'bomb'];
         for (let i = 0; i < randomNumberOfSprites; i++) {
@@ -121,16 +111,19 @@ export default class extends Phaser.State {
     handleClick(sprite, game) {
         if (sprite.type == 'bomb') {
             let lostHeart = this.healthArray.pop();
+            sprite.bombExplode();
             lostHeart.destroy();
             sprite.destroy();
         } else if (sprite.type == 'coin') {
+            sprite.coinSparkle(sprite);
             sprite.destroy();
-            console.log("coin tapped");
         }
     }
     expode(sprite) {
 
     }
+
+
     setHealth(currentHealth) {
         let healthStartx = this.world.x + 50;
         let offset = 80;

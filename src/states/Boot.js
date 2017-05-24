@@ -22,6 +22,17 @@ export default class extends Phaser.State {
 
     this.load.image('loaderBg', './assets/images/loader-bg.png')
     this.load.image('loaderBar', './assets/images/loader-bar.png')
+
+    //
+    // load your assets
+    //
+    this.load.image('bomb', 'assets/images/bomb.png');
+    this.load.image('coin', 'assets/images/coin.png');
+    this.load.image('heart', 'assets/images/heart.png');
+    this.load.image('wall', 'assets/images/wall.png');
+    this.load.spritesheet('coin-sparkle', 'assets/images/coin-sparkle.png',32,32)
+    this.load.spritesheet('coin-collect', 'assets/images/coin-collect.png',32,32)
+    this.load.spritesheet('coin-collect-reverse', 'assets/images/coin-collect-reverse.png',32,32)
   }
 
   render () {
