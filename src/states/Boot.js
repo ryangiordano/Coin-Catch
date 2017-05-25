@@ -32,7 +32,8 @@ export default class extends Phaser.State {
     this.load.image('wall', 'assets/images/wall.png');
     this.load.spritesheet('coin-sparkle', 'assets/images/coin-sparkle.png',32,32)
     this.load.spritesheet('coin-collect', 'assets/images/coin-collect.png',32,32)
-    this.load.spritesheet('coin-collect-reverse', 'assets/images/coin-collect-reverse.png',32,32)
+    this.load.spritesheet('coin-collect-reverse', 'assets/images/coin-collect-reverse.png',32,32);
+    this.load.spritesheet('explode', 'assets/images/explode.png',32,32)
   }
 
   render () {

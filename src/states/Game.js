@@ -1,5 +1,6 @@
 /* globals __DEV__ */
 import Phaser from 'phaser'
+import Rx from 'rxjs';
 import Mushroom from '../prefabs/Mushroom';
 import Bomb from '../prefabs/Bomb';
 import Coin from '../prefabs/Coin';
@@ -7,38 +8,54 @@ import Player from '../prefabs/Player';
 import Heart from '../prefabs/Heart';
 import Wall from '../prefabs/Wall';
 import CoinParticle from '../prefabs/particles/Coin.particle';
+import RoundController from '../prefabs/RoundController';
 
 export default class extends Phaser.State {
     init() {
         this.itemCount = 0;
+
     }
     preload() {
-        this.itemGroup = this.game.add.physicsGroup();
-        game.input.onDown.add(this.particleBurst, this);
-    }
-    particleBurst(pointer) {
+        this.coinGroup = this.game.add.group();
+        this.bombGroup = this.game.add.group();
+        this.roundWatch$ = new Rx.Subject();
+        console.log(this);
+        let subscription = this.roundWatch$.subscribe(
+            next => {
+                if (next == "round-complete") {
+                  this.betweenMatches = true;
+                  this.explode();
+                  setTimeout(()=>{
+                      this.setRound();
+                      this.betweenMatches = false;
+                  },2000)
+
+                }
+            }, error => {
+                console.log(error);
+            }, () => {
+                console.log("Completed");
+            })
 
     }
     create() {
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
-
-
         //give the items gravity
         this.game.physics.arcade.gravity.y = 200;
-
         //keep track of the things that are in the air.
         this.setPlayer();
         // this.setWall();
         this.setRound();
-
-
-
     }
     update() {
-        game.physics.arcade.collide(this.wall, this.itemGroup, () => {
+        game.physics.arcade.collide(this.wall, this.coinGroup, () => {
             console.log("hitting");
         });
-        console.log(this.itemGroup);
+
+        if(!this.coinGroup.children.length && !this.betweenMatches){
+            this.roundWatch$.next('round-complete');
+        }
+
     }
     setWall() {
         //create a boundary below the canvas for the items to be destroyed against
@@ -72,7 +89,6 @@ export default class extends Phaser.State {
                 y: this.world.y + this.world.height,
                 asset: `${type}`,
             });
-
         } else if (type == 'coin') {
             this.itemCount++;
             item = new Coin({
@@ -82,11 +98,17 @@ export default class extends Phaser.State {
                 asset: `${type}`,
             });
         }
-        this.itemGroup.add(item);
+
         item.name = `${type}_${this.itemCount}`;
         item.type = `${type}`;
         this.game.physics.arcade.enable([item]);
         this.game.add.existing(item);
+        if (type == 'coin') {
+            this.coinGroup.add(item);
+        } else if (type == 'bomb') {
+            this.bombGroup.add(item);
+        }
+
         item.scale.setTo(this.scaleRatio(), this.scaleRatio());
         //enable input on the bomb
         item.inputEnabled = true;
@@ -95,7 +117,7 @@ export default class extends Phaser.State {
         item.events.onInputDown.add(() => {
             this.handleClick(item, this);
         });
-        this.launchSprite([item])
+        this.launchSprite([item]);
     }
     removeSprite() {
 
@@ -111,16 +133,27 @@ export default class extends Phaser.State {
     handleClick(sprite, game) {
         if (sprite.type == 'bomb') {
             let lostHeart = this.healthArray.pop();
-            sprite.bombExplode();
+            sprite.bombExplode(sprite);
             lostHeart.destroy();
+            this.bombGroup.remove(sprite);
             sprite.destroy();
         } else if (sprite.type == 'coin') {
             sprite.coinSparkle(sprite);
+            this.coinGroup.remove(sprite);
+            console.log(this.coinGroup.children);
             sprite.destroy();
         }
     }
-    expode(sprite) {
-
+    explode() {
+      let count = 0;
+      this.bombGroup.children.forEach(bomb=>{
+        count++;
+        setTimeout(()=>{
+          bomb.bombExplode(bomb);
+          bomb.destroy();
+        },100*count)
+        console.log(this.bombGroup.children.length);
+      })
     }
 
 

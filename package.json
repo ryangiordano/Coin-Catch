@@ -25,6 +25,7 @@
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
     "expose-loader": "^0.7.3",
+    "rxjs": "^5.4.0",
     "webpack": "^2.5.1"
   },
   "dependencies": {
