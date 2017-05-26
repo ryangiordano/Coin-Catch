@@ -7,6 +7,7 @@ import Coin from '../prefabs/Coin';
 import Player from '../prefabs/Player';
 import Heart from '../prefabs/Heart';
 import Wall from '../prefabs/Wall';
+import Invest from '../prefabs/Invest';
 import CoinParticle from '../prefabs/particles/Coin.particle';
 import RoundController from '../prefabs/RoundController';
 
@@ -18,17 +19,21 @@ export default class extends Phaser.State {
     preload() {
         this.coinGroup = this.game.add.group();
         this.bombGroup = this.game.add.group();
+        this.investGroup = this.game.add.group();
+
+        //We're using observables to manage rounds~
         this.roundWatch$ = new Rx.Subject();
-        console.log(this);
+        this.roundCount = 0;
         let subscription = this.roundWatch$.subscribe(
             next => {
                 if (next == "round-complete") {
-                  this.betweenMatches = true;
-                  this.explode();
-                  setTimeout(()=>{
-                      this.setRound();
-                      this.betweenMatches = false;
-                  },2000)
+                    this.betweenMatches = true;
+                    this.roundCount++;
+                    this.explode(true);
+                    setTimeout(() => {
+                        this.setRound();
+                        this.betweenMatches = false;
+                    }, 2000)
 
                 }
             }, error => {
@@ -52,7 +57,7 @@ export default class extends Phaser.State {
             console.log("hitting");
         });
 
-        if(!this.coinGroup.children.length && !this.betweenMatches){
+        if (!this.coinGroup.children.length && !this.betweenMatches) {
             this.roundWatch$.next('round-complete');
         }
 
@@ -97,6 +102,14 @@ export default class extends Phaser.State {
                 y: this.world.y + this.world.height,
                 asset: `${type}`,
             });
+        } else if (type == 'invest') {
+            this.itemCount++;
+            item = new Invest({
+                game: this,
+                x: this.world.centerX + this.game.rnd.integerInRange(-500, 500),
+                y: this.world.y + this.world.height,
+                asset: `${type}`,
+            });
         }
 
         item.name = `${type}_${this.itemCount}`;
@@ -107,6 +120,8 @@ export default class extends Phaser.State {
             this.coinGroup.add(item);
         } else if (type == 'bomb') {
             this.bombGroup.add(item);
+        } else if (type == 'invest') {
+            this.investGroup.add(item)
         }
 
         item.scale.setTo(this.scaleRatio(), this.scaleRatio());
@@ -128,40 +143,86 @@ export default class extends Phaser.State {
         for (let i = 0; i < randomNumberOfSprites; i++) {
             this.setSprite(arrayOfTypes[this.game.rnd.integerInRange(0, 1)]);
         }
+        //every four rounds we launch a sprite
+        if (this.roundCount % 4 == 0) {
+            this.setSprite('invest')
+        }
         this.roundStart = true;
     }
     handleClick(sprite, game) {
         if (sprite.type == 'bomb') {
-            let lostHeart = this.healthArray.pop();
+            let lostHeart = this.player.health.pop();
             sprite.bombExplode(sprite);
+            this.player.coins = Math.ceil(this.player.coins / 2);
+            this.updateCoins(this.player.coins);
             lostHeart.destroy();
             this.bombGroup.remove(sprite);
             sprite.destroy();
         } else if (sprite.type == 'coin') {
             sprite.coinSparkle(sprite);
+            this.player.score += sprite.scoreValue;
+            this.player.coins += sprite.coinValue;
+            this.updateScore(this.player.score);
+            this.updateCoins(this.player.coins);
             this.coinGroup.remove(sprite);
-            console.log(this.coinGroup.children);
+
             sprite.destroy();
+        } else if (sprite.type == 'invest') {
+            this.freezeGroup([this.coinGroup,this.bombGroup]);
         }
     }
-    explode() {
-      let count = 0;
-      this.bombGroup.children.forEach(bomb=>{
-        count++;
-        setTimeout(()=>{
-          bomb.bombExplode(bomb);
-          bomb.destroy();
-        },100*count)
-        console.log(this.bombGroup.children.length);
-      })
+    freezeGroup(group) {
+        if (Array.isArray(group)) {
+            group.forEach(singleGroup=>{
+              singleGroup.children.forEach(child=>{
+                child.body.gravity=0;
+              })
+            })
+        } else {
+          group.children.forEach(child=>{
+            child.body.gravity=0;
+          })
+        }
     }
-
-
-    setHealth(currentHealth) {
+    explode(harmless) {
+        //harmless is a boolean
+        let count = 0;
+        this.bombGroup.children.forEach(bomb => {
+            count++;
+            setTimeout(() => {
+                if (harmless) {
+                    bomb.bombFirework(bomb);
+                } else {
+                    bomb.bombExplode(bomb);
+                }
+                bomb.destroy();
+            }, 100 * count)
+        })
+    }
+    setPlayer() {
+        this.player = new Player({
+            game: this,
+            x: 0,
+            y: 0,
+            asset: null
+        })
+        this.game.add.existing(this.player);
+        this.player.setHealth(3);
+        this.player.coins = 0;
+        this.player.score = 0;
+        this.setHUD();
+    }
+    setHUD() {
+        //set the health bar
+        let health = this.game.add.text(this.world.x + 20, 10, 'LIFE', {
+            font: '30px VT323',
+            fill: '#dddddd',
+            align: 'left'
+        })
         let healthStartx = this.world.x + 50;
         let offset = 80;
-        this.healthArray = [];
-        for (let i = 0; i < currentHealth; i++) {
+        this.player.health = [];
+        for (let i = 0; i < this.player.maxHealth; i++) {
             let heart = new Heart({
                 game: this,
                 x: healthStartx + offset * i,
@@ -171,19 +232,39 @@ export default class extends Phaser.State {
             heart.anchor.setTo(0.5, 0.5);
             this.game.add.existing(heart);
             heart.scale.setTo(this.scaleRatio(), this.scaleRatio());
-            this.healthArray.push(heart);
+            this.player.health.push(heart);
         }
-    }
-    setPlayer() {
-        this.player = new Player({
-            game: this,
-            x: 0,
-            y: 0,
-            asset: null
+        //set score
+        let scoreLabel = this.game.add.text(this.world.x + 20, 120, 'SCORE', {
+            font: '30px VT323',
+            fill: '#dddddd',
+            align: 'left'
         })
-        this.player.health = 3;
-        this.game.add.existing(this.player);
-        this.setHealth(this.player.health);
+        this.scoreDisplay = this.game.add.text(this.world.x + 20, 150, '0', {
+            font: '50px VT323',
+            fill: '#dddddd',
+            align: 'left'
+        })
+        //set coins
+        let coinLabel = this.game.add.sprite(this.world.x + 300, 15, 'coin');
+        coinLabel.scale.setTo(this.scaleRatio() * .4, this.scaleRatio() * .4);
+        let x = this.game.add.text(this.world.x + 335, 5, 'x', {
+            font: '50px VT323',
+            fill: '#dddddd',
+            align: 'left'
+        });
+        this.coinDisplay = this.game.add.text(this.world.x + 360, 5, '0', {
+            font: '50px VT323',
+            fill: '#dddddd',
+            align: 'left'
+        });
+
+    }
+    updateScore(value) {
+        this.scoreDisplay.setText(value);
+    }
+    updateCoins(value) {
+        this.coinDisplay.setText(value);
     }
     launchSprite(array) {
         array.forEach(sprite => {
