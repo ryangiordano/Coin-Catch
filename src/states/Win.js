@@ -18,7 +18,7 @@ export default class extends Phaser.State {
     init(parameter) {
       this.score = parameter.score;
       this.sessionId = parameter.sessionId;
-      this.firebase = new FirebaseConnection(this.game.gameId, this.game.sessionId);
+      this.firebase = new FirebaseConnection(this.game.gameId, this.sessionId);
     }
     preload() {
       WebFont.load({
@@ -32,7 +32,9 @@ export default class extends Phaser.State {
       win.anchor.setTo(0.5, 0.5);
       let score = this.add.text(this.world.centerX, this.world.centerY + 40, `Your score was: ${this.score}`, { font: '50px VT323', fill: '#dddddd', align: 'center' })
       score.anchor.setTo(0.5, 0.5);
-
+      this.firebase.writeHighScore('Test Player',this.score).then(data=>{
+        console.log(data);
+      });
     }
     create() {
 
@@ -40,6 +42,9 @@ export default class extends Phaser.State {
     update() {
 
 
+    }
+    listScores(){
+      // TODO: Get the scores and list the highest 10.  
     }
 
     scaleRatio() {

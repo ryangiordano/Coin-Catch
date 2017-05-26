@@ -19,7 +19,7 @@ export default class extends Phaser.State {
 
 
         //create a round controller to govern the number of rounds in the game
-        this.roundController = new RoundController(this.game,1);
+        this.roundController = new RoundController(this.game,10);
         //create a scene controller to handle going from scene to scene
         this.sceneController = new SceneController(this.game);
 

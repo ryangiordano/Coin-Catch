@@ -17,10 +17,19 @@ export default class {
       this.connection = Firebase.database();
     }
     writeHighScore(name, score) {
+      return new Promise((resolve,reject)=>{
         this.connection.ref(`games/${this.gameId}/${this.gameSessionId}`).set({
             name: name,
             score: score
+        }, (err)=>{
+            if(!err){
+              resolve('Data successfully posted');
+            }else{
+              reject(err);
+            }
         });
+      })
+
     }
     getHighScores() {
         //get the top 10 or so high scores
