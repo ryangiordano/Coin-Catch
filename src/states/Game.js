@@ -21,6 +21,7 @@ export default class extends Phaser.State {
         this.bombGroup = this.game.add.group();
         this.investGroup = this.game.add.group();
 
+        this.timeFrozen=false;
         //We're using observables to manage rounds~
         this.roundWatch$ = new Rx.Subject();
         this.roundCount = 0;
@@ -168,21 +169,51 @@ export default class extends Phaser.State {
 
             sprite.destroy();
         } else if (sprite.type == 'invest') {
-            this.freezeGroup([this.coinGroup,this.bombGroup]);
+          if(!this.timeFrozen){
+
+              this.freezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
+          }else{
+              this.unfreezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
+          }
+
         }
     }
     freezeGroup(group) {
+
         if (Array.isArray(group)) {
             group.forEach(singleGroup=>{
               singleGroup.children.forEach(child=>{
-                child.body.gravity=0;
+                child.body.allowGravity=false;
+                child.body.velocity.setTo(0,0);
+
+                child.body.allowRotation=false;
               })
             })
+            this.timeFrozen = true;
         } else {
           group.children.forEach(child=>{
-            child.body.gravity=0;
+            child.body.allowGravity=false;
           })
+          this.timeFrozen = true;
         }
+    }
+    unfreezeGroup(group){
+
+      if (Array.isArray(group)) {
+          group.forEach(singleGroup=>{
+            singleGroup.children.forEach(child=>{
+              child.body.allowGravity=true;
+              child.body.velocity.setTo(0, this.game.rnd.integerInRange(-800 * this.scaleRatio(), this.scaleRatio() * -1000));
+              child.body.allowRotation=true;
+            })
+          })
+          this.timeFrozen = false;
+      } else {
+        group.children.forEach(child=>{
+        child.body.allowGravity=true;
+        })
+        this.timeFrozen = false;
+      }
     }
     explode(harmless) {
         //harmless is a boolean
