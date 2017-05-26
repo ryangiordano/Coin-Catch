@@ -1,5 +1,6 @@
 /* globals __DEV__ */
 import Phaser from 'phaser'
+import FirebaseConnection from '../database/DatabaseConnection';
 import Rx from 'rxjs';
 import Mushroom from '../prefabs/Mushroom';
 import Bomb from '../prefabs/Bomb';
@@ -9,11 +10,18 @@ import Heart from '../prefabs/Heart';
 import Wall from '../prefabs/Wall';
 import Invest from '../prefabs/Invest';
 import CoinParticle from '../prefabs/particles/Coin.particle';
-import RoundController from '../prefabs/RoundController';
+import RoundController from '../state-management/RoundController';
+import SceneController from '../state-management/SceneController';
 
 export default class extends Phaser.State {
     init() {
         this.itemCount = 0;
+
+
+        //create a round controller to govern the number of rounds in the game
+        this.roundController = new RoundController(this.game,1);
+        //create a scene controller to handle going from scene to scene
+        this.sceneController = new SceneController(this.game);
 
     }
     preload() {
@@ -24,12 +32,17 @@ export default class extends Phaser.State {
         this.timeFrozen=false;
         //We're using observables to manage rounds~
         this.roundWatch$ = new Rx.Subject();
-        this.roundCount = 0;
         let subscription = this.roundWatch$.subscribe(
             next => {
                 if (next == "round-complete") {
                     this.betweenMatches = true;
-                    this.roundCount++;
+                    if(this.roundController.roundCount -1 == 0){
+                      this.betweenMatches = false;
+                    setTimeout(()=>{
+                        return this.sceneController.toScene('Win', true, false,{score:this.player.score, sessionId: this.sessionId})
+                    },2000)
+                    }
+                    this.roundController.decrementAndUpdate();
                     this.explode(true);
                     setTimeout(() => {
                         this.setRound();
@@ -145,7 +158,7 @@ export default class extends Phaser.State {
             this.setSprite(arrayOfTypes[this.game.rnd.integerInRange(0, 1)]);
         }
         //every four rounds we launch a sprite
-        if (this.roundCount % 4 == 0) {
+        if (this.roundController.roundCount % 4 == 0) {
             this.setSprite('invest')
         }
         this.roundStart = true;
@@ -169,12 +182,17 @@ export default class extends Phaser.State {
 
             sprite.destroy();
         } else if (sprite.type == 'invest') {
-          if(!this.timeFrozen){
 
-              this.freezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
-          }else{
-              this.unfreezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
-          }
+
+              // this.freezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
+              this.player.score += sprite.calcBonus(this.player.coins);
+              this.player.coins =0;
+              this.updateScore(this.player.score);
+              this.updateCoins(this.player.coins);
+              //harmlessly explode bombs
+              this.explode(true);
+              sprite.destroy();
+
 
         }
     }
@@ -289,7 +307,7 @@ export default class extends Phaser.State {
             fill: '#dddddd',
             align: 'left'
         });
-
+        this.roundController.setRounds();
     }
     updateScore(value) {
         this.scoreDisplay.setText(value);

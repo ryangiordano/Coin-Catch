@@ -6,7 +6,10 @@ export default class extends Phaser.State {
     console.log("Boot");
     this.stage.backgroundColor = '#2d2d2d'
     this.fontsReady = false
-    this.fontsLoaded = this.fontsLoaded.bind(this)
+    this.fontsLoaded = this.fontsLoaded.bind(this);
+
+
+    this.game.gameId = "wizecks2017";
   }
 
   preload () {

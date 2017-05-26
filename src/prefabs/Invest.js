@@ -10,17 +10,17 @@ export default class extends Phaser.Sprite{
   }
   calcBonus(coinsInvested){
     if(coinsInvested >= 10){
-      return Math.ceil(coinsInvested * 1.5);
+      return Math.ceil(coinsInvested *5* 1.5);
     }
     if(coinsInvested >= 20){
-      return coinsInvested * 2
+      return coinsInvested *5* 2
     }
     if(coinsInvested >= 30){
-      return coinsInvested*3
+      return coinsInvested*5*3
     }
     if(coinsInvested >= 40){
-      return coinsInvested*5
+      return coinsInvested*5*5
     }
-    return coinsInvested;
+    return coinsInvested*5;
   }
 }
