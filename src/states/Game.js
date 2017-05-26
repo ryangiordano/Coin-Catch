@@ -21,7 +21,7 @@ export default class extends Phaser.State {
         this.bombGroup = this.game.add.group();
         this.investGroup = this.game.add.group();
 
-        this.timeFrozen=false;
+        this.timeFrozen = false;
         //We're using observables to manage rounds~
         this.roundWatch$ = new Rx.Subject();
         this.roundCount = 0;
@@ -58,7 +58,8 @@ export default class extends Phaser.State {
             console.log("hitting");
         });
 
-        if (!this.coinGroup.children.length && !this.betweenMatches) {
+        if (!this.coinGroup.children.length &&
+          !this.investGroup.children.length && !this.betweenMatches) {
             this.roundWatch$.next('round-complete');
         }
 
@@ -169,51 +170,59 @@ export default class extends Phaser.State {
 
             sprite.destroy();
         } else if (sprite.type == 'invest') {
-          if(!this.timeFrozen){
 
-              this.freezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
-          }else{
-              this.unfreezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
-          }
+            if (!this.timeFrozen) {
+
+                // this.freezeGroup([this.coinGroup, this.bombGroup, this.investGroup]);
+                sprite.investFirework(sprite);
+                this.explode(true);
+                this.player.score += sprite.calcBonus(this.player.coins);
+                this.player.coins = 0;
+                this.updateScore(this.player.score);
+                this.updateCoins(this.player.coins);
+                this.investGroup.remove(sprite);
+                sprite.destroy();
+
+            }
 
         }
     }
     freezeGroup(group) {
 
         if (Array.isArray(group)) {
-            group.forEach(singleGroup=>{
-              singleGroup.children.forEach(child=>{
-                child.body.allowGravity=false;
-                child.body.velocity.setTo(0,0);
+            group.forEach(singleGroup => {
+                singleGroup.children.forEach(child => {
+                    child.body.allowGravity = false;
+                    child.body.velocity.setTo(0, 0);
 
-                child.body.allowRotation=false;
-              })
+                    child.body.allowRotation = false;
+                })
             })
             this.timeFrozen = true;
         } else {
-          group.children.forEach(child=>{
-            child.body.allowGravity=false;
-          })
-          this.timeFrozen = true;
+            group.children.forEach(child => {
+                child.body.allowGravity = false;
+            })
+            this.timeFrozen = true;
         }
     }
-    unfreezeGroup(group){
+    unfreezeGroup(group) {
 
-      if (Array.isArray(group)) {
-          group.forEach(singleGroup=>{
-            singleGroup.children.forEach(child=>{
-              child.body.allowGravity=true;
-              child.body.velocity.setTo(0, this.game.rnd.integerInRange(-800 * this.scaleRatio(), this.scaleRatio() * -1000));
-              child.body.allowRotation=true;
+        if (Array.isArray(group)) {
+            group.forEach(singleGroup => {
+                singleGroup.children.forEach(child => {
+                    child.body.allowGravity = true;
+                    child.body.velocity.setTo(0, this.game.rnd.integerInRange(-800 * this.scaleRatio(), this.scaleRatio() * -1000));
+                    child.body.allowRotation = true;
+                })
             })
-          })
-          this.timeFrozen = false;
-      } else {
-        group.children.forEach(child=>{
-        child.body.allowGravity=true;
-        })
-        this.timeFrozen = false;
-      }
+            this.timeFrozen = false;
+        } else {
+            group.children.forEach(child => {
+                child.body.allowGravity = true;
+            })
+            this.timeFrozen = false;
+        }
     }
     explode(harmless) {
         //harmless is a boolean
