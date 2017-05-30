@@ -9,7 +9,7 @@ import Player from '../prefabs/Player';
 import Heart from '../prefabs/Heart';
 import Wall from '../prefabs/Wall';
 import Invest from '../prefabs/Invest';
-import CoinParticle from '../prefabs/particles/Coin.particle';
+// import CoinParticle from '../prefabs/particles/Coin.particle';
 import RoundController from '../state-management/RoundController';
 import SceneController from '../state-management/SceneController';
 
@@ -19,9 +19,11 @@ export default class extends Phaser.State {
 
 
         //create a round controller to govern the number of rounds in the game
-        this.roundController = new RoundController(this.game,10);
+        this.roundController = new RoundController(this.game, 2);
         //create a scene controller to handle going from scene to scene
         this.sceneController = new SceneController(this.game);
+        //create a session id for the game.
+        this.sessionId = new Date().getTime();
 
     }
     preload() {
@@ -32,23 +34,41 @@ export default class extends Phaser.State {
         this.timeFrozen = false;
         //We're using observables to manage rounds~
         this.roundWatch$ = new Rx.Subject();
-        let subscription = this.roundWatch$.subscribe(
+        let roundSubscription = this.roundWatch$.subscribe(
             next => {
                 if (next == "round-complete") {
+                    console.log('round complete');
                     this.betweenMatches = true;
-                    if(this.roundController.roundCount -1 == 0){
-                      this.betweenMatches = false;
-                    setTimeout(()=>{
-                        return this.sceneController.toScene('Win', true, false,{score:this.player.score, sessionId: this.sessionId})
-                    },2000)
-                    }
-                    this.roundController.decrementAndUpdate();
-                    this.explode(true);
-                    setTimeout(() => {
-                        this.setRound();
-                        this.betweenMatches = false;
-                    }, 2000)
+                    if (this.roundController.roundCount - 1 == 0) {
+                                            this.explode(true);
+                        setTimeout(() => {
+                          this.betweenMatches = false;
+                            return this.sceneController.toScene('Win', true, false, {
+                                score: this.player.score,
+                                sessionId: this.sessionId
+                            })
+                        }, 2000)
+                    }else{
+                      this.roundController.decrementAndUpdate();
 
+                      this.explode(true);
+                      setTimeout(() => {
+                          this.setRound();
+                          this.betweenMatches = false;
+                      }, 2000)
+                    }
+
+
+                }
+                if (next == "round-lost") {
+                    this.betweenMatches = true;
+                    console.log(this.sessionId);
+                    setTimeout(() => {
+                        return this.sceneController.toScene('Win', true, false, {
+                            score: this.player.score,
+                            sessionId: this.sessionId
+                        })
+                    }, 2000)
                 }
             }, error => {
                 console.log(error);
@@ -56,6 +76,20 @@ export default class extends Phaser.State {
                 console.log("Completed");
             })
 
+        this.coinWatch$ = new Rx.Subject();
+        let coinSubscription = this.coinWatch$.subscribe(
+          next=>{
+            if(next.length == 0){
+              console.log("coins gone");
+            }
+          },
+          error=>{
+
+          },
+          ()=>{
+            console.log('complete');
+          }
+        )
     }
     create() {
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -72,8 +106,13 @@ export default class extends Phaser.State {
         });
 
         if (!this.coinGroup.children.length &&
-          !this.investGroup.children.length && !this.betweenMatches) {
+            !this.investGroup.children.length && !this.betweenMatches) {
             this.roundWatch$.next('round-complete');
+        }
+        //player health is 0
+        if (!this.player.health.length && !this.betweenMatches) {
+
+            this.roundWatch$.next('round-lost');
         }
 
     }
@@ -172,27 +211,27 @@ export default class extends Phaser.State {
             this.updateCoins(this.player.coins);
             lostHeart.destroy();
             this.bombGroup.remove(sprite);
-            sprite.destroy();
+
         } else if (sprite.type == 'coin') {
-            sprite.coinSparkle(sprite);
+
             this.player.score += sprite.scoreValue;
             this.player.coins += sprite.coinValue;
             this.updateScore(this.player.score);
             this.updateCoins(this.player.coins);
             this.coinGroup.remove(sprite);
-
-            sprite.destroy();
+            sprite.coinCollect(sprite);
+            this.coinWatch$.next(this.coinGroup);
         } else if (sprite.type == 'invest') {
 
 
-              // this.freezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
-              this.player.score += sprite.calcBonus(this.player.coins);
-              this.player.coins =0;
-              this.updateScore(this.player.score);
-              this.updateCoins(this.player.coins);
-              //harmlessly explode bombs
-              this.explode(true);
-              sprite.destroy();
+            // this.freezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
+            this.player.score += sprite.calcBonus(this.player.coins);
+            this.player.coins = 0;
+            this.updateScore(this.player.score);
+            this.updateCoins(this.player.coins);
+            //harmlessly explode bombs
+            this.explode(true);
+            sprite.destroy();
 
         }
     }
@@ -238,13 +277,13 @@ export default class extends Phaser.State {
         let count = 0;
         this.bombGroup.children.forEach(bomb => {
             count++;
+            console.log(count);
             setTimeout(() => {
                 if (harmless) {
                     bomb.bombFirework(bomb);
                 } else {
                     bomb.bombExplode(bomb);
                 }
-                bomb.destroy();
             }, 100 * count)
         })
     }

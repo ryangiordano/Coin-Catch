@@ -34,16 +34,20 @@ export default class extends Phaser.Sprite{
       single.animations.add('explode');
       single.animations.play('explode',this.game.rnd.integerInRange(10,30),false,true);
     })
+    this.alpha = 0;
     setTimeout(()=>{
       explodeEmitter.start(true, lifeTime, 1500, 30, true);
       setTimeout(()=>{
         explodeEmitter.destroy();
+        this.destroySelf();
       },lifeTime)
     },200)
   }
   bombFirework(sprite){
+    console.log("fireworks");
+      let random = this.game.rnd;
     //set the color of the firework
-    let color = this.colorMap.get(this.game.rnd.integerInRange(0,5));
+    let color = this.colorMap.get(random.integerInRange(0,5));
     this.game.camera.shake(0.01, 100);
 
     let explodeWave =this.game.add.sprite(sprite.position.x,sprite.position.y,'coin-collect-reverse');
@@ -57,7 +61,7 @@ export default class extends Phaser.Sprite{
     let explodeEmitter = this.game.add.emitter(sprite.position.x, sprite.position.y);
 
     let lifeTime = 3000;
-    explodeEmitter.makeParticles(color, [0], this.game.rnd.integerInRange(50,60), true, false);
+    explodeEmitter.makeParticles(color, [0], random.integerInRange(50,60), true, false);
 
     explodeEmitter.gravity = -150;
 
@@ -67,21 +71,27 @@ export default class extends Phaser.Sprite{
     // explodeEmitter.minParticleSpeed.setTo(-100,100);
     // explodeEmitter.maxParticleSpeed.setTo(-200,200);
     explodeEmitter.forEach(single=>{
-      single.minRotation = this.game.rnd.integerInRange(0,50);
-      single.maxRotation = this.game.rnd.integerInRange(100,200);
+
+      single.minRotation = random.integerInRange(0,50);
+      single.maxRotation = random.integerInRange(100,200);
 
       single.animations.add(color);
-      single.animations.play(color,this.game.rnd.integerInRange(10,30),true,true);
-    })
-    setTimeout(()=>{
+      single.animations.play(color,random.integerInRange(10,30),true,true);
+    });
+    this.alpha = 0;
+
       explodeEmitter.start(true, lifeTime, 1500, 100, true);
-    },200)
+      this.destroySelf();
+
   }
   update(){
     super.update();
     if(this.y > this.game.world.height){
-      this.destroy();
+      this.destroySelf();
     }
+  }
+  destroySelf(){
+    this.destroy();
   }
   scaleRatio() {
       return window.devicePixelRatio / 3;

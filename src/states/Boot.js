@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import WebFont from 'webfontloader'
+import FirebaseConnection from '../database/DatabaseConnection';
 
 export default class extends Phaser.State {
   init () {
@@ -7,9 +8,9 @@ export default class extends Phaser.State {
     this.stage.backgroundColor = '#2d2d2d'
     this.fontsReady = false
     this.fontsLoaded = this.fontsLoaded.bind(this);
-
-
     this.game.gameId = "wizecks2017";
+    this.game.firebase = new FirebaseConnection(this.game.gameId);
+
   }
 
   preload () {

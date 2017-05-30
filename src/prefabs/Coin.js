@@ -8,7 +8,7 @@ export default class extends Phaser.Sprite{
   }
   update(){
   }
-  coinSparkle(sprite) {
+  coinCollect(sprite) {
       let coinCollect =this.game.add.sprite(sprite.position.x,sprite.position.y,'coin-collect-reverse');
       coinCollect.anchor.setTo(0.5, 0.5);
       coinCollect.scale.setTo(this.scaleRatio()*7, this.scaleRatio()*7);
@@ -24,20 +24,25 @@ export default class extends Phaser.Sprite{
         single.animations.add('coin-sparkle');
         single.animations.play('coin-sparkle',this.game.rnd.integerInRange(10,30),false,true);
       })
+      this.alpha =0;
       setTimeout(()=>{
         coinSparkleEmitter.start(false, lifeTime, 1500, 30, true);
         setTimeout(()=>{
           coinSparkleEmitter.destroy();
+          this.destroySelf();
         },lifeTime)
       },200)
   }
   scaleRatio() {
       return window.devicePixelRatio / 3;
   }
+  destroySelf(){
+    this.destroy();
+  }
   update(){
     super.update();
     if(this.y > this.game.world.height){
-      this.destroy();
+      this.destroySelf();
     }
   }
 }

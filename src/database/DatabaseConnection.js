@@ -1,9 +1,8 @@
 import Firebase from 'firebase';
 // import * as admin from 'firebase-admin';
 export default class {
-    constructor(gameId, gameSessionId) {
+    constructor(gameId) {
       this.gameId = gameId;
-      this.gameSessionId = gameSessionId;
       // Initialize Firebase
       var config = {
           apiKey: "AIzaSyCsuL_6nDpr4tqtwTQEGn3FEITRQh5Em-k",
@@ -16,9 +15,9 @@ export default class {
       Firebase.initializeApp(config);
       this.connection = Firebase.database();
     }
-    writeHighScore(name, score) {
+    writeHighScore(name, score, sessionId) {
       return new Promise((resolve,reject)=>{
-        this.connection.ref(`games/${this.gameId}/${this.gameSessionId}`).set({
+        this.connection.ref(`games/${this.gameId}/${sessionId}`).set({
             name: name,
             score: score
         }, (err)=>{
