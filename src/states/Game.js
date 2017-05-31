@@ -199,7 +199,6 @@ export default class extends Phaser.State {
         }
     }
     freezeGroup(group) {
-
         if (Array.isArray(group)) {
             group.forEach(singleGroup => {
                 singleGroup.children.forEach(child => {
