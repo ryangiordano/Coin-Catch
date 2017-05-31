@@ -11,6 +11,17 @@ export default class extends Phaser.Sprite{
       [4,'flash-gold'],
       [5,'flash-lb']
     ]);
+    this.checkWorldBounds = function() {
+        if (!this.destroyed && this.body.position.x < 0) {
+            // this.body.position.x = this.game.physics.arcade.bounds.x;
+            this.body.velocity.x *= -this.body.bounce.x;
+            this.body.blocked.left = true;
+        } else if (!this.destroyed && this.body.position.x > this.game.world.width-70) {
+            // this.position.x = this.game.physics.arcade.bounds.right - this.width;
+            this.body.velocity.x *= -this.body.bounce.x;
+            this.body.blocked.right = true;
+        }
+    }
   }
   investFirework(sprite){
     //set the color of the firework
@@ -51,8 +62,13 @@ export default class extends Phaser.Sprite{
   update(){
     super.update();
     if(this.y > this.game.world.height){
-      this.destroy();
+      this.destroySelf();
     }
+    this.checkWorldBounds();
+  }
+  destroySelf(){
+    this.destroyed = true;
+    this.destroy();
   }
   calcBonus(coinsInvested){
 

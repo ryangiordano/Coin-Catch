@@ -11,6 +11,17 @@ export default class extends Phaser.Sprite{
       [4,'flash-gold'],
       [5,'flash-lb']
     ]);
+    this.checkWorldBounds = function() {
+        if (!this.destroyed && this.body.position.x < 0) {
+            // this.body.position.x = this.game.physics.arcade.bounds.x;
+            this.body.velocity.x *= -this.body.bounce.x;
+            this.body.blocked.left = true;
+        } else if (!this.destroyed && this.body.position.x > this.game.world.width-70) {
+            // this.position.x = this.game.physics.arcade.bounds.right - this.width;
+            this.body.velocity.x *= -this.body.bounce.x;
+            this.body.blocked.right = true;
+        }
+    }
   }
   bombExplode(sprite){
     let explodeWave =this.game.add.sprite(sprite.position.x,sprite.position.y,'coin-collect-reverse');
@@ -37,10 +48,7 @@ export default class extends Phaser.Sprite{
     this.alpha = 0;
     setTimeout(()=>{
       explodeEmitter.start(true, lifeTime, 1500, 30, true);
-      setTimeout(()=>{
-        explodeEmitter.destroy();
         this.destroySelf();
-      },lifeTime)
     },200)
   }
   bombFirework(sprite){
@@ -89,8 +97,10 @@ export default class extends Phaser.Sprite{
     if(this.y > this.game.world.height){
       this.destroySelf();
     }
+    this.checkWorldBounds()
   }
   destroySelf(){
+    this.destroyed = true;
     this.destroy();
   }
   scaleRatio() {

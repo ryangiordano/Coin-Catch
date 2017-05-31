@@ -1,36 +1,28 @@
 /* globals __DEV__ */
 import Phaser from 'phaser'
-import FirebaseConnection from '../database/DatabaseConnection';
 import Rx from 'rxjs';
-import Mushroom from '../prefabs/Mushroom';
 import Bomb from '../prefabs/Bomb';
 import Coin from '../prefabs/Coin';
 import Player from '../prefabs/Player';
 import Heart from '../prefabs/Heart';
-import Wall from '../prefabs/Wall';
 import Invest from '../prefabs/Invest';
-// import CoinParticle from '../prefabs/particles/Coin.particle';
+
 import RoundController from '../state-management/RoundController';
 import SceneController from '../state-management/SceneController';
 
 export default class extends Phaser.State {
     init() {
-        this.itemCount = 0;
-
-
         //create a round controller to govern the number of rounds in the game
-        this.roundController = new RoundController(this.game, 2);
+        this.roundController = new RoundController(this.game, 15);
         //create a scene controller to handle going from scene to scene
         this.sceneController = new SceneController(this.game);
         //create a session id for the game.
         this.sessionId = new Date().getTime();
-
     }
     preload() {
         this.coinGroup = this.game.add.group();
         this.bombGroup = this.game.add.group();
         this.investGroup = this.game.add.group();
-
         this.timeFrozen = false;
         //We're using observables to manage rounds~
         this.roundWatch$ = new Rx.Subject();
@@ -40,7 +32,7 @@ export default class extends Phaser.State {
                     console.log('round complete');
                     this.betweenMatches = true;
                     if (this.roundController.roundCount - 1 == 0) {
-                                            this.explode(true);
+                        this.explode(true);//harmless
                         setTimeout(() => {
                           this.betweenMatches = false;
                             return this.sceneController.toScene('Win', true, false, {
@@ -50,15 +42,12 @@ export default class extends Phaser.State {
                         }, 2000)
                     }else{
                       this.roundController.decrementAndUpdate();
-
-                      this.explode(true);
+                      this.explode(true);//harmless
                       setTimeout(() => {
                           this.setRound();
                           this.betweenMatches = false;
                       }, 2000)
                     }
-
-
                 }
                 if (next == "round-lost") {
                     this.betweenMatches = true;
@@ -101,47 +90,21 @@ export default class extends Phaser.State {
         this.setRound();
     }
     update() {
-        game.physics.arcade.collide(this.wall, this.coinGroup, () => {
-            console.log("hitting");
-        });
-
+        // game.physics.arcade.collide(this.wall, this.coinGroup, () => {
+        //     console.log("hitting");
+        // });
         if (!this.coinGroup.children.length &&
             !this.investGroup.children.length && !this.betweenMatches) {
             this.roundWatch$.next('round-complete');
         }
         //player health is 0
         if (!this.player.health.length && !this.betweenMatches) {
-
             this.roundWatch$.next('round-lost');
         }
-
-    }
-    setWall() {
-        //create a boundary below the canvas for the items to be destroyed against
-        this.wall = new Wall({
-            game: this,
-            x: this.world.centerX,
-            y: this.world.y + this.world.height - 100,
-            asset: 'wall'
-        });
-        this.game.add.existing(this.wall)
-        var width = document.documentElement.clientWidth; // example;
-        var height = 10 // example;
-
-        this.game.physics.arcade.enable(this.wall);
-
-
-        // this.game.physics.arcade.enable([]);
-
-        this.wall.body.enable = true;
-        this.wall.body.immovable = true;
-        this.wall.body.allowGravity = false;
-        this.wall.body.setSize(height, width)
     }
     setSprite(type) {
         let item;
         if (type == 'bomb') {
-            this.itemCount++;
             item = new Bomb({
                 game: this,
                 x: this.world.centerX + this.game.rnd.integerInRange(-500, 500),
@@ -149,7 +112,6 @@ export default class extends Phaser.State {
                 asset: `${type}`,
             });
         } else if (type == 'coin') {
-            this.itemCount++;
             item = new Coin({
                 game: this,
                 x: this.world.centerX + this.game.rnd.integerInRange(-500, 500),
@@ -157,7 +119,6 @@ export default class extends Phaser.State {
                 asset: `${type}`,
             });
         } else if (type == 'invest') {
-            this.itemCount++;
             item = new Invest({
                 game: this,
                 x: this.world.centerX + this.game.rnd.integerInRange(-500, 500),
@@ -165,8 +126,6 @@ export default class extends Phaser.State {
                 asset: `${type}`,
             });
         }
-
-        item.name = `${type}_${this.itemCount}`;
         item.type = `${type}`;
         this.game.physics.arcade.enable([item]);
         this.game.add.existing(item);
@@ -188,20 +147,24 @@ export default class extends Phaser.State {
         });
         this.launchSprite([item]);
     }
-    removeSprite() {
-
-    }
     setRound() {
-        let randomNumberOfSprites = this.game.rnd.integerInRange(2, 10);
-        let arrayOfTypes = ['coin', 'bomb'];
-        for (let i = 0; i < randomNumberOfSprites; i++) {
-            this.setSprite(arrayOfTypes[this.game.rnd.integerInRange(0, 1)]);
-        }
-        //every four rounds we launch a sprite
-        if (this.roundController.roundCount % 4 == 0) {
-            this.setSprite('invest')
-        }
+        let nextRound = this.roundController.setNextRound();
+        nextRound.forEach(item=>{
+          this.setSprite(this.roundController.typeMap.get(item));
+        })
+        // let randomNumberOfSprites = this.game.rnd.integerInRange(2, 10);
+        // let arrayOfTypes = ['coin', 'bomb'];
+        // for (let i = 0; i < randomNumberOfSprites; i++) {
+        //     this.setSprite(arrayOfTypes[this.game.rnd.integerInRange(0, 1)]);
+        // }
+        // //every four rounds we launch a sprite
+        // if (this.roundController.roundCount % 4 == 0) {
+        //     this.setSprite('invest')
+        // }
         this.roundStart = true;
+    }
+    setWalls(){
+
     }
     handleClick(sprite, game) {
         if (sprite.type == 'bomb') {
@@ -346,7 +309,7 @@ export default class extends Phaser.State {
             fill: '#dddddd',
             align: 'left'
         });
-        this.roundController.setRounds();
+        this.roundController.displayRound();
     }
     updateScore(value) {
         this.scoreDisplay.setText(value);
@@ -356,13 +319,15 @@ export default class extends Phaser.State {
     }
     launchSprite(array) {
         array.forEach(sprite => {
-
             // sprite.body.collideWorldBounds = true;
             sprite.body.bounce.y = 0.95;
+            sprite.body.bounce.x = 0.95;
             sprite.anchor.setTo(0.5, 0.5);
             sprite.body.enable = true;
 
-            sprite.body.velocity.setTo(0, this.game.rnd.integerInRange(-1300 * this.scaleRatio(), this.scaleRatio() * -1800));
+            sprite.body.velocity.setTo(this.game.rnd.integerInRange(-800 * this.scaleRatio(), this.scaleRatio() * 800),
+
+            this.game.rnd.integerInRange(-1300 * this.scaleRatio(), this.scaleRatio() * -1800));
             // sprite.body.gravity.y = -1;
             sprite.body.gravity.isCircle = true;
             sprite.body.angularVelocity = this.game.rnd.integerInRange(30, 100);
