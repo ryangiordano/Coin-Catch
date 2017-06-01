@@ -129,6 +129,7 @@ export default class extends Phaser.State {
         item.type = `${type}`;
         this.game.physics.arcade.enable([item]);
         this.game.add.existing(item);
+
         if (type == 'coin') {
             this.coinGroup.add(item);
         } else if (type == 'bomb') {
@@ -143,8 +144,10 @@ export default class extends Phaser.State {
 
         //then when user clicks it, activate the method on the object
         item.events.onInputDown.add(() => {
+          console.log("??");
             this.handleClick(item, this);
         });
+
         this.launchSprite([item]);
     }
     setRound() {
@@ -200,11 +203,7 @@ export default class extends Phaser.State {
     coinsToScore({coins,score,scoreDisplay,coinDisplay},investSprite){
       // TODO: Make it so the coins go to the score.
       //USE OBSERVABLES WITH A STAGGER
-
-
-
-      let coinLength = coins;
-      for(let i = 0; i<coinLength; i++){
+      while(coins){
         coins--;
         this.player.coins = coins;
         this.updateCoins(this.player.coins);
@@ -333,6 +332,7 @@ this.updateScore(this.player.score);
     }
     launchSprite(array) {
         array.forEach(sprite => {
+          console.log(sprite);
             // sprite.body.collideWorldBounds = true;
             sprite.body.bounce.y = 0.95;
             sprite.body.bounce.x = 0.95;

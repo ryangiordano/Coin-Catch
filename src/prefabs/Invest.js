@@ -1,27 +1,9 @@
 import Phaser from 'phaser';
+import Item from './item';
 
-export default class extends Phaser.Sprite{
+export default class extends Item{
   constructor({game,x,y,asset}){
     super(game,x,y,asset);
-    this.colorMap = new Map([
-      [0,'flash-red'],
-      [1,'flash-blue'],
-      [2,'flash-green'],
-      [3,'flash-pink'],
-      [4,'flash-gold'],
-      [5,'flash-lb']
-    ]);
-    this.checkWorldBounds = function() {
-        if (!this.destroyed && this.body.position.x < 0) {
-            // this.body.position.x = this.game.physics.arcade.bounds.x;
-            this.body.velocity.x *= -this.body.bounce.x;
-            this.body.blocked.left = true;
-        } else if (!this.destroyed && this.body.position.x > this.game.world.width-70) {
-            // this.position.x = this.game.physics.arcade.bounds.right - this.width;
-            this.body.velocity.x *= -this.body.bounce.x;
-            this.body.blocked.right = true;
-        }
-    }
   }
   investFirework(sprite){
     //set the color of the firework
@@ -61,14 +43,7 @@ export default class extends Phaser.Sprite{
   }
   update(){
     super.update();
-    if(this.y > this.game.world.height){
-      this.destroySelf();
-    }
-    this.checkWorldBounds();
-  }
-  destroySelf(){
-    this.destroyed = true;
-    this.destroy();
+
   }
   calcBonus(coinsInvested){
 
@@ -86,8 +61,5 @@ export default class extends Phaser.Sprite{
       return coinsInvested*5*5
     }
     return coinsInvested*5;
-  }
-  scaleRatio() {
-      return window.devicePixelRatio / 3;
   }
 }
