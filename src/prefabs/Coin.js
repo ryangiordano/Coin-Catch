@@ -14,7 +14,6 @@ export default class extends Phaser.Sprite {
         this.checkWorldBounds = function() {
             if (!this.destroyed && this.body.position.x < 0) {
                 // this.body.position.x = this.game.physics.arcade.bounds.x;
-
                 this.body.velocity.x *= -this.body.bounce.x;
                 this.body.blocked.left = true;
             } else if (!this.destroyed && this.body.position.x > this.game.world.width-70) {

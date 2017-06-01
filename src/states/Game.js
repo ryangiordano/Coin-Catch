@@ -163,9 +163,6 @@ export default class extends Phaser.State {
         // }
         this.roundStart = true;
     }
-    setWalls(){
-
-    }
     handleClick(sprite, game) {
         if (sprite.type == 'bomb') {
             let lostHeart = this.player.health.pop();
@@ -185,18 +182,36 @@ export default class extends Phaser.State {
             sprite.coinCollect(sprite);
             this.coinWatch$.next(this.coinGroup);
         } else if (sprite.type == 'invest') {
-
+            this.coinsToScore({
+              coins:this.player.coins,
+              score:this.player.score,
+              scoreDisplay:this.scoreDisplay,
+              coinDisplay:this.coinDisplay
+            },sprite);
 
             // this.freezeGroup([this.coinGroup,this.bombGroup, this.investGroup]);
-            this.player.score += sprite.calcBonus(this.player.coins);
-            this.player.coins = 0;
-            this.updateScore(this.player.score);
-            this.updateCoins(this.player.coins);
+
             //harmlessly explode bombs
             this.explode(true);
             sprite.destroy();
 
         }
+    }
+    coinsToScore({coins,score,scoreDisplay,coinDisplay},investSprite){
+      // TODO: Make it so the coins go to the score.
+      //USE OBSERVABLES WITH A STAGGER
+
+
+
+      let coinLength = coins;
+      for(let i = 0; i<coinLength; i++){
+        coins--;
+        this.player.coins = coins;
+        this.updateCoins(this.player.coins);
+
+      }
+      this.player.score += investSprite.calcBonus(this.player.coins);
+this.updateScore(this.player.score);
     }
     freezeGroup(group) {
         if (Array.isArray(group)) {

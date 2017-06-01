@@ -8,7 +8,7 @@ export default class{
   constructor(game,roundCount, roundPlan){
     this.game = game;
     this.sampleRound = [
-            [0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,1,1,1,1,1,1,1,1,0,2,0,0,0,0,0,0,0],
       [0,1,1],
       [0,0,0,1,1,1,1,1],
       [0,0,0,0,0,1,1,1,1,1,1,1,1],
