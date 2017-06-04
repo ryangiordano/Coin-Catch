@@ -11,7 +11,8 @@ export default class extends Phaser.Sprite{
       [4,'flash-gold'],
       [5,'flash-lb']
     ]);
-    console.log("This is the parent, Item class.",game,x,y,asset);
+
+    // console.log("This is the parent, Item class.",game,x,y,asset);
         // this.game.physics.arcade.enable([this]);
         // this.scale.setTo(this.scaleRatio(), this.scaleRatio());
 
@@ -32,16 +33,14 @@ export default class extends Phaser.Sprite{
     }
   update(){
     super.update();
-    // if(this.y > this.game.world.height){
-    //   this.destroySelf();
-    // }
+
+    if(this.y > this.game.world.height){
+      this.destroySelf();
+    }
     // this.checkWorldBounds()
   }
   destroySelf(){
     this.destroyed = true;
     this.destroy();
-  }
-  scaleRatio() {
-      return window.devicePixelRatio / 3;
   }
 }

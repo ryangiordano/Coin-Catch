@@ -12,7 +12,7 @@ export default class extends Item{
 
     let explodeWave =this.game.add.sprite(sprite.position.x,sprite.position.y,'coin-collect-reverse');
     explodeWave.anchor.setTo(0.5, 0.5);
-    explodeWave.scale.setTo(this.scaleRatio()*7, this.scaleRatio()*7);
+    explodeWave.scale.setTo(this.game.scaleRatio()*7, this.game.scaleRatio()*7);
     explodeWave.animations.add('coin-collect-reverse');
     explodeWave.animations.play('coin-collect-reverse',24,false,true);
 

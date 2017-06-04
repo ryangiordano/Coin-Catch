@@ -8,7 +8,9 @@ export default class extends Phaser.State {
     this.stage.backgroundColor = '#2d2d2d'
     this.fontsReady = false
     this.fontsLoaded = this.fontsLoaded.bind(this);
+    //set the game Id (will be the name of the institution housing the ipad)
     this.game.gameId = "wizecks2017";
+    //Load the firebase connection
     this.game.firebase = new FirebaseConnection(this.game.gameId);
 
   }

@@ -16,7 +16,7 @@ export default class extends Item {
     coinCollect(sprite) {
         let coinCollect = this.game.add.sprite(sprite.position.x, sprite.position.y, 'coin-collect-reverse');
         coinCollect.anchor.setTo(0.5, 0.5);
-        coinCollect.scale.setTo(this.scaleRatio() * 7, this.scaleRatio() * 7);
+        coinCollect.scale.setTo(this.game.scaleRatio() * 7, this.game.scaleRatio() * 7);
         coinCollect.animations.add('coin-collect-reverse');
         coinCollect.animations.play('coin-collect-reverse', 24, false, true);
         let coinSparkleEmitter = this.game.add.emitter(sprite.position.x, sprite.position.y);

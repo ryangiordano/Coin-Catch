@@ -26,6 +26,9 @@ class Game extends Phaser.Game {
     this.state.start('Boot');
 
   }
+  scaleRatio() {
+      return window.devicePixelRatio / 3;
+  }
 }
 
 window.game = new Game()

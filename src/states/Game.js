@@ -86,7 +86,6 @@ export default class extends Phaser.State {
         this.game.physics.arcade.gravity.y = 200;
         //keep track of the things that are in the air.
         this.setPlayer();
-        // this.setWall();
         this.setRound();
     }
     update() {
@@ -104,29 +103,37 @@ export default class extends Phaser.State {
     }
     setSprite(type) {
         let item;
+        let randomX = this.game.rnd.integerInRange(-500, 500);
         if (type == 'bomb') {
             item = new Bomb({
                 game: this,
-                x: this.world.centerX + this.game.rnd.integerInRange(-500, 500),
-                y: this.world.y + this.world.height,
-                asset: `${type}`,
+                // x: this.world.centerX + randomX,
+                // y: this.world.y + this.world.height,
+                // asset: `${type}`,
             });
+
         } else if (type == 'coin') {
             item = new Coin({
                 game: this,
-                x: this.world.centerX + this.game.rnd.integerInRange(-500, 500),
+                x: this.world.centerX + randomX,
                 y: this.world.y + this.world.height,
-                asset: `${type}`,
+                // asset: `${type}`,
             });
         } else if (type == 'invest') {
             item = new Invest({
                 game: this,
-                x: this.world.centerX + this.game.rnd.integerInRange(-500, 500),
+                x: this.world.centerX + randomX,
                 y: this.world.y + this.world.height,
-                asset: `${type}`,
+                // asset: `${type}`,
             });
         }
-        item.type = `${type}`;
+        //place the item on the world
+        item.x= this.world.centerX + randomX
+        item.y= this.world.y + this.world.height
+        //load the texture, set the scale of the item, the type of the item, enabe phyiscs, and then add the game to the scene
+        item.loadTexture(type);
+        item.scale.setTo(this.game.scaleRatio());
+        item.type = type;
         this.game.physics.arcade.enable([item]);
         this.game.add.existing(item);
 
@@ -137,18 +144,32 @@ export default class extends Phaser.State {
         } else if (type == 'invest') {
             this.investGroup.add(item)
         }
-
-        item.scale.setTo(this.scaleRatio(), this.scaleRatio());
         //enable input on the bomb
         item.inputEnabled = true;
 
         //then when user clicks it, activate the method on the object
         item.events.onInputDown.add(() => {
-          console.log("??");
             this.handleClick(item, this);
         });
 
         this.launchSprite([item]);
+    }
+    launchSprite(array) {
+        array.forEach(sprite => {
+            // sprite.body.collideWorldBounds = true;
+            sprite.body.bounce.y = 0.95;
+            sprite.body.bounce.x = 0.95;
+            sprite.anchor.setTo(0.5, 0.5);
+            sprite.body.enable = true;
+
+            sprite.body.velocity.setTo(this.game.rnd.integerInRange(-800 * this.game.scaleRatio(), this.game.scaleRatio() * 800),this.game.rnd.integerInRange(-1300 * this.game.scaleRatio(), this.game.scaleRatio() * -1800));
+            // sprite.body.gravity.y = -1;
+            sprite.body.gravity.isCircle = true;
+            sprite.body.angularVelocity = this.game.rnd.integerInRange(30, 100);
+            sprite.body.angularRotation = this.game.rnd.integerInRange(30, 100);
+            sprite.body.angularRotation = 40;
+
+        })
     }
     setRound() {
         let nextRound = this.roundController.setNextRound();
@@ -212,8 +233,7 @@ export default class extends Phaser.State {
       this.player.score += investSprite.calcBonus(this.player.coins);
 this.updateScore(this.player.score);
     }
-    freezeGroup(group) {
-        if (Array.isArray(group)) {
+    freezeGroup(group) {        if (Array.isArray(group)) {
             group.forEach(singleGroup => {
                 singleGroup.children.forEach(child => {
                     child.body.allowGravity = false;
@@ -236,7 +256,7 @@ this.updateScore(this.player.score);
             group.forEach(singleGroup => {
                 singleGroup.children.forEach(child => {
                     child.body.allowGravity = true;
-                    child.body.velocity.setTo(0, this.game.rnd.integerInRange(-800 * this.scaleRatio(), this.scaleRatio() * -1000));
+                    child.body.velocity.setTo(0, this.game.rnd.integerInRange(-800 * this.game.scaleRatio(), this.game.scaleRatio() * -1000));
                     child.body.allowRotation = true;
                 })
             })
@@ -253,7 +273,6 @@ this.updateScore(this.player.score);
         let count = 0;
         this.bombGroup.children.forEach(bomb => {
             count++;
-            console.log(count);
             setTimeout(() => {
                 if (harmless) {
                     bomb.bombFirework(bomb);
@@ -295,7 +314,7 @@ this.updateScore(this.player.score);
             });
             heart.anchor.setTo(0.5, 0.5);
             this.game.add.existing(heart);
-            heart.scale.setTo(this.scaleRatio(), this.scaleRatio());
+            heart.scale.setTo(this.game.scaleRatio(), this.game.scaleRatio());
             this.player.health.push(heart);
         }
         //set score
@@ -311,7 +330,7 @@ this.updateScore(this.player.score);
         })
         //set coins
         let coinLabel = this.game.add.sprite(this.world.x + 300, 15, 'coin');
-        coinLabel.scale.setTo(this.scaleRatio() * .4, this.scaleRatio() * .4);
+        coinLabel.scale.setTo(this.game.scaleRatio() * .4, this.game.scaleRatio() * .4);
         let x = this.game.add.text(this.world.x + 335, 5, 'x', {
             font: '50px VT323',
             fill: '#dddddd',
@@ -330,29 +349,7 @@ this.updateScore(this.player.score);
     updateCoins(value) {
         this.coinDisplay.setText(value);
     }
-    launchSprite(array) {
-        array.forEach(sprite => {
-          console.log(sprite);
-            // sprite.body.collideWorldBounds = true;
-            sprite.body.bounce.y = 0.95;
-            sprite.body.bounce.x = 0.95;
-            sprite.anchor.setTo(0.5, 0.5);
-            sprite.body.enable = true;
 
-            sprite.body.velocity.setTo(this.game.rnd.integerInRange(-800 * this.scaleRatio(), this.scaleRatio() * 800),
-
-            this.game.rnd.integerInRange(-1300 * this.scaleRatio(), this.scaleRatio() * -1800));
-            // sprite.body.gravity.y = -1;
-            sprite.body.gravity.isCircle = true;
-            sprite.body.angularVelocity = this.game.rnd.integerInRange(30, 100);
-            sprite.body.angularRotation = this.game.rnd.integerInRange(30, 100);
-            sprite.body.angularRotation = 40;
-
-        })
-    }
-    scaleRatio() {
-        return window.devicePixelRatio / 3;
-    }
     render() {
         if (__DEV__) {
             // this.game.debug.spriteInfo(this.mushroom, 32, 32);

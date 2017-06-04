@@ -2,14 +2,6 @@
 import Phaser from 'phaser'
 
 import Rx from 'rxjs';
-import Mushroom from '../prefabs/Mushroom';
-import Bomb from '../prefabs/Bomb';
-import Coin from '../prefabs/Coin';
-import Player from '../prefabs/Player';
-import Heart from '../prefabs/Heart';
-import Wall from '../prefabs/Wall';
-import Invest from '../prefabs/Invest';
-import CoinParticle from '../prefabs/particles/Coin.particle';
 import RoundController from '../state-management/RoundController';
 import SceneController from '../state-management/SceneController';
 import WebFont from 'webfontloader'
