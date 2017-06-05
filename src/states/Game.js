@@ -141,6 +141,9 @@ export default class extends Phaser.State {
             this.coinGroup.add(item);
         } else if (type == 'bomb') {
             this.bombGroup.add(item);
+            console.log(this.game.scaleRatio());
+
+            item.scale.setTo(.4)
         } else if (type == 'invest') {
             this.investGroup.add(item)
         }
@@ -162,7 +165,14 @@ export default class extends Phaser.State {
             sprite.anchor.setTo(0.5, 0.5);
             sprite.body.enable = true;
 
-            sprite.body.velocity.setTo(this.game.rnd.integerInRange(-800 * this.game.scaleRatio(), this.game.scaleRatio() * 800),this.game.rnd.integerInRange(-1300 * this.game.scaleRatio(), this.game.scaleRatio() * -1800));
+            let maxHeight = window.innerHeight*window.devicePixelRatio*.8;
+            let minHeight = window.innerHeight*window.devicePixelRatio*.4;
+
+            // sprite.body.velocity.setTo(this.game.rnd.integerInRange(-800 * this.game.scaleRatio(), this.game.scaleRatio() * 800),this.game.rnd.integerInRange(-1300 * this.game.scaleRatio(), this.game.scaleRatio() * -1800));
+            let randomY = this.game.rnd.integerInRange(-minHeight,-maxHeight);
+            let randomX = this.game.rnd.integerInRange(-400 * this.game.scaleRatio(), this.game.scaleRatio() * 400);
+            sprite.body.velocity.setTo(randomX, randomY);
+
             // sprite.body.gravity.y = -1;
             sprite.body.gravity.isCircle = true;
             sprite.body.angularVelocity = this.game.rnd.integerInRange(30, 100);
@@ -174,6 +184,7 @@ export default class extends Phaser.State {
     setRound() {
         let nextRound = this.roundController.setNextRound();
         nextRound.forEach(item=>{
+          //uses an enumerable to define what type is to be set
           this.setSprite(this.roundController.typeMap.get(item));
         })
         // let randomNumberOfSprites = this.game.rnd.integerInRange(2, 10);

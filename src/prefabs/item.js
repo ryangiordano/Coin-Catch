@@ -37,7 +37,7 @@ export default class extends Phaser.Sprite{
     if(this.y > this.game.world.height){
       this.destroySelf();
     }
-    // this.checkWorldBounds()
+    this.checkWorldBounds()
   }
   destroySelf(){
     this.destroyed = true;
