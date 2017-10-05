@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import Item from './item';
 export default class extends Item{
-  constructor({game,x,y,asset}){
+  constructor(game,x,y,asset){
     super(game,x,y,asset);
         // console.log(`x: ${x}`, `y: ${y}`);
     // console.log("This is the bomb extension of item.",game,x,y,asset);

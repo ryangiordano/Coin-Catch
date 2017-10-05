@@ -105,27 +105,27 @@ export default class extends Phaser.State {
         let item;
         let randomX = this.game.rnd.integerInRange(-500, 500);
         if (type == 'bomb') {
-            item = new Bomb({
-                game: this,
-                // x: this.world.centerX + randomX,
-                // y: this.world.y + this.world.height,
-                // asset: `${type}`,
-            });
+            item = new Bomb(
+                this.game,
+                this.world.centerX + randomX,
+                 this.world.y + this.world.height,
+                  `${type}`,
+            );
 
         } else if (type == 'coin') {
-            item = new Coin({
-                game: this,
-                x: this.world.centerX + randomX,
-                y: this.world.y + this.world.height,
-                // asset: `${type}`,
-            });
+            item = new Coin(
+                this.game,
+                this.world.centerX + randomX,
+                 this.world.y + this.world.height,
+                  `${type}`,
+            );
         } else if (type == 'invest') {
-            item = new Invest({
-                game: this,
-                x: this.world.centerX + randomX,
-                y: this.world.y + this.world.height,
-                // asset: `${type}`,
-            });
+            item = new Invest(
+                this.game,
+                this.world.centerX + randomX,
+                 this.world.y + this.world.height,
+                  `${type}`,
+            );
         }
         //place the item on the world
         item.x= this.world.centerX + randomX
@@ -294,12 +294,12 @@ this.updateScore(this.player.score);
         })
     }
     setPlayer() {
-        this.player = new Player({
-            game: this,
-            x: 0,
-            y: 0,
-            asset: null
-        })
+        this.player = new Player(
+             this.game,
+             0,
+             0,
+             null
+        )
         this.game.add.existing(this.player);
         this.player.setHealth(3);
         this.player.coins = 0;
@@ -317,12 +317,12 @@ this.updateScore(this.player.score);
         let offset = 80;
         this.player.health = [];
         for (let i = 0; i < this.player.maxHealth; i++) {
-            let heart = new Heart({
-                game: this,
-                x: healthStartx + offset * i,
-                y: 80,
-                asset: 'heart',
-            });
+            let heart = new Heart(
+              this.game,
+              healthStartx + offset * i,
+                80,
+             'heart',
+            );
             heart.anchor.setTo(0.5, 0.5);
             this.game.add.existing(heart);
             heart.scale.setTo(this.game.scaleRatio(), this.game.scaleRatio());

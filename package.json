@@ -1,8 +1,8 @@
 {
-  "name": "PhaserES6Webpack",
+  "name": "Coin Catch",
   "version": "1.0.0",
   "description": "",
-  "author": "leandro cabrera <leandcabrera@gmail.com>",
+  "author": "Ryan Giordano",
   "main": "index.js",
   "scripts": {
     "dev": "webpack",

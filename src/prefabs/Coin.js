@@ -1,12 +1,11 @@
 import Phaser from 'phaser';
 import Item from './item';
 export default class extends Item {
-    constructor({
-        game,
+    constructor(game,
         x,
         y,
         asset
-    }) {
+    ) {
         super(game, x, y, asset);
         this.scoreValue = 5;
         this.coinValue = 1;

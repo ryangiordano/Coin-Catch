@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import Item from './item';
 
 export default class extends Item{
-  constructor({game,x,y,asset}){
+  constructor(game,x,y,asset){
     super(game,x,y,asset);
   }
   investFirework(sprite){
